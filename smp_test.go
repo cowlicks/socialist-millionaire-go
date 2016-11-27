@@ -62,10 +62,26 @@ func TestBobLies(t *testing.T) {
 
 func TestPerson(t *testing.T) {
 	pub := NewPublic()
-	alice := NewPerson(pub, []byte("El pueblo unido"))
-	bob := NewPerson(pub, []byte("El pueblo unido"))
+	msg := []byte("El pueblo unido")
 
-	one, two := alice.FirstKeySend()
-	bob.FirstKeyReceive(one, two)
+	alice := NewPerson(pub, msg)
+	bob := NewPerson(pub, msg)
+
+	alice.FirstKeyReceive(bob.FirstKeySend())
+	bob.FirstKeyReceive(alice.FirstKeySend())
+
 	alice.SecondReceive(bob.SecondSend())
+	bob.SecondReceive(alice.SecondSend())
+
+	alice.FinalReceive(bob.FinalSend())
+	bob.FinalReceive(alice.FinalSend())
+
+	if !bob.Check() {
+		t.Fatal()
+	}
+
+	if !alice.Check() {
+		t.Fatal()
+	}
+
 }
