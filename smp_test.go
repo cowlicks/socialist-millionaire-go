@@ -59,3 +59,13 @@ func TestBobLies(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestPerson(t *testing.T) {
+	pub := NewPublic()
+	alice := NewPerson(pub, []byte("El pueblo unido"))
+	bob := NewPerson(pub, []byte("El pueblo unido"))
+
+	one, two := alice.FirstKeySend()
+	bob.FirstKeyReceive(one, two)
+	alice.SecondReceive(bob.SecondSend())
+}

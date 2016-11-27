@@ -1,3 +1,6 @@
+// Referenced from
+// https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
+
 package smp
 
 import (
@@ -45,6 +48,15 @@ type Public struct {
 	Base  *big.Int
 }
 
+func NewPublic() *Public {
+	prime, err := rand.Prime(rand.Reader, primebits)
+	base, err := randInt(prime, err)
+	if err != nil {
+		panic(err)
+	}
+	return &Public{Prime: prime, Base: base}
+}
+
 type Person struct {
 	g1 *big.Int
 	p  *big.Int
@@ -62,15 +74,6 @@ type Person struct {
 	exp1 *big.Int
 	exp2 *big.Int
 	exp3 *big.Int
-}
-
-func NewPublic() *Public {
-	prime, err := rand.Prime(rand.Reader, primebits)
-	base, err := randInt(prime, err)
-	if err != nil {
-		panic(err)
-	}
-	return &Public{Prime: prime, Base: base}
 }
 
 func NewPerson(pub *Public, secret []byte) *Person {
@@ -162,4 +165,30 @@ func (a *Alice) Five(rb *big.Int) error {
 		return nil
 	}
 	return errors.New("bad match")
+}
+
+func (p *Person) FirstKeySend() (one, two *big.Int) {
+	one = Pow(p.g1, p.exp1, p.p)
+	two = Pow(p.g1, p.exp2, p.p)
+	return one, two
+}
+
+func (p *Person) FirstKeyReceive(one, two *big.Int) error {
+	if one  == big.NewInt(1) || two == big.NewInt(1) {
+		return errors.New("Bad DHKE value received.")
+	}
+	p.g2 = Pow(one, p.exp1, p.p)
+	p.g3 = Pow(two, p.exp2, p.p)
+	return nil
+}
+
+func (p *Person) SecondSend() (pb, qb *big.Int) {
+	p.pb = Pow(p.g3, p.exp3, p.p)
+	p.qb = Mul(Pow(p.g1, p.exp3, p.p), Pow(p.g2, p.secret, p.p), p.p)
+	return p.pb, p.qb
+}
+
+func (p *Person) SecondReceive(pa, qa *big.Int) {
+	p.pa = pa
+	p.qa = qa
 }
