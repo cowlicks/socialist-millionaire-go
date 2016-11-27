@@ -63,6 +63,10 @@ type Person struct {
 
 	secret *big.Int
 
+	exp1 *big.Int
+	exp2 *big.Int
+	exp3 *big.Int
+
 	g2 *big.Int
 	g3 *big.Int
 
@@ -74,9 +78,6 @@ type Person struct {
 	rother *big.Int
 	rboth *big.Int
 
-	exp1 *big.Int
-	exp2 *big.Int
-	exp3 *big.Int
 }
 
 func NewPerson(pub *Public, secret []byte) *Person {
@@ -86,9 +87,8 @@ func NewPerson(pub *Public, secret []byte) *Person {
 	if err != nil {
 		panic(err)
 	}
-	secretInt := new(big.Int).SetBytes(secret)
 	return &Person{g1: pub.Base, p: pub.Prime, exp1: exp1, exp2: exp2, exp3: exp3,
-		secret: secretInt}
+		secret: new(big.Int).SetBytes(secret)}
 }
 
 func (p *Person) FirstKeySend() (one, two *big.Int) {
@@ -131,7 +131,11 @@ func (p *Person) FinalReceive(rother *big.Int) {
 // How dangerous is this?
 func (p *Person) Check() bool {
 	p.rboth = Pow(p.rother, p.exp2, p.p)
-	if Eq(p.rboth, Div(p.pself, p.pother, p.p)) || Eq(p.rboth, Div(p.pother, p.pself, p.p)) {
+
+	selfother := Div(p.pself, p.pother, p.p)
+	otherself := Div(p.pother, p.pself, p.p)
+
+	if Eq(p.rboth, selfother) || Eq(p.rboth, otherself) {
 		return true
 	}
 	return false
