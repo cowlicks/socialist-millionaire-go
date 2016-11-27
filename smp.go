@@ -66,13 +66,13 @@ type Person struct {
 	g2 *big.Int
 	g3 *big.Int
 
-	qa *big.Int
-	qb *big.Int
-	pa *big.Int
-	pb *big.Int
-	ra *big.Int
-	rb *big.Int
-	rab *big.Int
+	qself *big.Int
+	qother *big.Int
+	pself *big.Int
+	pother *big.Int
+	rself *big.Int
+	rother *big.Int
+	rboth *big.Int
 
 	exp1 *big.Int
 	exp2 *big.Int
@@ -91,7 +91,6 @@ func NewPerson(pub *Public, secret []byte) *Person {
 		secret: secretInt}
 }
 
-// with person funcs, p is Alice
 func (p *Person) FirstKeySend() (one, two *big.Int) {
 	one = Pow(p.g1, p.exp1, p.p)
 	two = Pow(p.g1, p.exp2, p.p)
@@ -107,32 +106,32 @@ func (p *Person) FirstKeyReceive(one, two *big.Int) error {
 	return nil
 }
 
-func (p *Person) SecondSend() (pa, qa *big.Int) {
-	p.pa = Pow(p.g3, p.exp3, p.p)
-	p.qa = Mul(Pow(p.g1, p.exp3, p.p), Pow(p.g2, p.secret, p.p), p.p)
-	return p.pa, p.qa
+func (p *Person) SecondSend() (pself, qself *big.Int) {
+	p.pself = Pow(p.g3, p.exp3, p.p)
+	p.qself = Mul(Pow(p.g1, p.exp3, p.p), Pow(p.g2, p.secret, p.p), p.p)
+	return p.pself, p.qself
 }
 
-func (p *Person) SecondReceive(pb, qb *big.Int) {
-	p.pb = pb
-	p.qb = qb
+func (p *Person) SecondReceive(pother, qother *big.Int) {
+	p.pother = pother
+	p.qother = qother
 }
 
-func (p *Person) FinalSend() (ra *big.Int) {
-	p.ra = Pow(Div(p.qa, p.qb, p.p), p.exp2, p.p)
-	return p.ra
+func (p *Person) FinalSend() (rself *big.Int) {
+	p.rself = Pow(Div(p.qself, p.qother, p.p), p.exp2, p.p)
+	return p.rself
 }
 
-func (p *Person) FinalReceive(rb *big.Int) {
-	p.rb = rb
+func (p *Person) FinalReceive(rother *big.Int) {
+	p.rother = rother
 }
 
 // nb: to make the protocol symmetric, we check for both
-// rab == pa/pb and rab == pb/pa
-// is this dangerous?
+// rboth == pself/pother and rboth == pother/pself
+// How dangerous is this?
 func (p *Person) Check() bool {
-	p.rab = Pow(p.rb, p.exp2, p.p)
-	if Eq(p.rab, Div(p.pa, p.pb, p.p)) || Eq(p.rab, Div(p.pb, p.pa, p.p)) {
+	p.rboth = Pow(p.rother, p.exp2, p.p)
+	if Eq(p.rboth, Div(p.pself, p.pother, p.p)) || Eq(p.rboth, Div(p.pother, p.pself, p.p)) {
 		return true
 	}
 	return false
