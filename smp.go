@@ -128,7 +128,8 @@ func (p *Person) FinalReceive(rother *big.Int) {
 
 // nb: to make the protocol symmetric, we check for both
 // rboth == pself/pother and rboth == pother/pself
-// How dangerous is this?
+// How dangerous is this? See:
+// https://crypto.stackexchange.com/questions/41864/how-to-modify-the-socialist-millionaire-protocol-to-be-symmetric
 func (p *Person) Check() bool {
 	p.rboth = Pow(p.rother, p.exp2, p.p)
 
