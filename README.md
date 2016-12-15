@@ -6,6 +6,9 @@ secret over an insecure channel. The protocol cannot be Man-in-the-Middled, and
 eavesdroppers cannot determine whether or not Alice and Bob shared the same
 secret.
 
+**This is homemade unaudited crypto for research and educational use only.
+Do not use it in a real production environment.**
+
 Usage example:
 ```go
 
